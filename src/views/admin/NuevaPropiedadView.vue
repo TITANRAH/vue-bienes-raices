@@ -2,16 +2,22 @@
 import { useForm, useField } from 'vee-validate';
 import { validationSchema, imageSchema } from '@/validation/propiedadSchema'
 import { collection, addDoc } from "firebase/firestore";
-import {useFirestore} from 'vuefire'
+import { useFirestore } from 'vuefire'
 import { useRouter } from 'vue-router';
 import useImage from '@/composables/useImage';
+import useLocationMap from '@/composables/useLocationMap';
+import "leaflet/dist/leaflet.css";
+import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
 
 
 // PARA INTERACTUAR CON LA AUTENTICACION SE USA useFirebaseAuth 
 // EN ESTE CASO PARA INTERACUTAR CON LA BASDE DE DATOS USAMOS useFirestore
 const items = [1, 2, 3, 4, 5]
 
-const {uploadImage, image, url} = useImage()
+
+
+const { uploadImage, image, url } = useImage()
+const { zoom ,center,pin } = useLocationMap()
 const router = useRouter()
 
 const db = useFirestore()
@@ -44,7 +50,7 @@ const alberca = useField('alberca', null, {
 
 const submit = handleSubmit(async (values) => {
   // console.log(values) 
-  const {imagen, ...propiedad} = values
+  const { imagen, ...propiedad } = values
   // destructuramos y hacemos solo consolelog a propiedad 
   // que es el resto de los campos del formulario excepto imagen
   // la idea de esto es subir una imagen a cloud storage pero no a la base de datos 
@@ -55,11 +61,12 @@ const submit = handleSubmit(async (values) => {
     // con spred operator puedo guardar los campos sin necesidad de que sea un objeto 
     // osea se guarda como campos y no como objeto, es mejor
     ...propiedad,
-    imagen: url.value
+    imagen: url.value,
+    ubicacion: center.value
   });
   // cuando se genere el guardado se va a admnin-propiedades
-  if(docRef.id){
-    router.push({name: 'admin-propiedades'})
+  if (docRef.id) {
+    router.push({ name: 'admin-propiedades' })
   }
   console.log("Document written with ID: ", docRef.id);
 })
@@ -84,9 +91,7 @@ const submit = handleSubmit(async (values) => {
 
       <!-- acepta iconos de material desing busco aca https://pictogrammers.com/library/mdi/ con el prefijo mdi -->
       <v-file-input accept="image/jpeg" label="Fotografía" prepend-icon="mdi-camera" class="mb-5"
-        v-model="imagen.value.value" :error-messages="imagen.errorMessage.value"
-        @change="uploadImage"
-        >
+        v-model="imagen.value.value" :error-messages="imagen.errorMessage.value" @change="uploadImage">
       </v-file-input>
 
       <div v-if="image" class="my-5">
@@ -119,6 +124,28 @@ const submit = handleSubmit(async (values) => {
       </v-textarea>
 
       <v-checkbox label="Alberca" v-model="alberca.value.value" :error-messages="alberca.errorMessage.value" />
+      
+      <!-- MAPA -->
+      <h2 class="font-weight-bold text-center my-5"></h2>
+      <div class="pb-10">
+        <div style="height:600px">
+          <LMap 
+              v-model:zoom="zoom" 
+              :center="center" 
+              :use-global-leaflet="false"
+          >
+            <LMarker
+              :lat-lng="center"
+              draggable
+              @moveend="pin"
+            />
+            <LTileLayer 
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">
+            </LTileLayer>
+          </LMap>
+        </div>
+     </div>
+      <!-- MAPA -->
 
       <v-btn color="pink-accent-3" block @click="submit">
         Agregar Propiedad
