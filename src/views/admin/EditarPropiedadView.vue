@@ -1,4 +1,14 @@
 <script setup>
+import { useRoute } from 'vue-router';
+import { useFirestore } from 'vuefire';
+
+
+
+const route = useRoute()
+
+
+// asi rescato el id de la url
+console.log(route.params.id);
 
 </script>
 <template>

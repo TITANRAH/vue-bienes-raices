@@ -38,7 +38,7 @@ const router = createRouter({
         },
         {
           path: '/admin/editar/:id',
-          name: 'editar-propiedades',
+          name: 'editar-propiedad',
           component: () => import('../views/admin/EditarPropiedadView.vue'),
           meta: {requiresAuth: true}, 
         },
