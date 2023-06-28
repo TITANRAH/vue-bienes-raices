@@ -57,6 +57,7 @@ const submit = handleSubmit(async (values) => {
   // en base de datos solo guardaremos la ubicacion de la imagen
   console.log(propiedad)
 
+  // adddoc es para agregar nuevo registro
   const docRef = await addDoc(collection(db, "propiedades"), {
     // con spred operator puedo guardar los campos sin necesidad de que sea un objeto 
     // osea se guarda como campos y no como objeto, es mejor
@@ -65,6 +66,7 @@ const submit = handleSubmit(async (values) => {
     ubicacion: center.value
   });
   // cuando se genere el guardado se va a admnin-propiedades
+  // si se guarda traera un id si hay id lo dirije a admin-propiedades
   if (docRef.id) {
     router.push({ name: 'admin-propiedades' })
   }

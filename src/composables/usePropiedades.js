@@ -2,6 +2,8 @@ import {collection} from 'firebase/firestore'
 import { computed } from 'vue'
 import { useFirestore, useCollection } from 'vuefire'
 
+// useCollection es para traerme toda la coleccion en base de datos
+
 export default function usePropiedades(){
 
     const db = useFirestore()
