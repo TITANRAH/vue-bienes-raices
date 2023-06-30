@@ -25,7 +25,11 @@ export default function useImage(){
     // identifica donde lo guardara
     const storageRefPath = storageRef(storage, `/propiedades/${uid()}.jpg`)
     
+    // esto finalmente nos ayuda a suvbir, url es donde quedo guardadea la iamgen
+    // y upload la fncion que sube 
     // uploadProgress, uploadError, uploadTask,  puedo destrucitrar esto que me da otras opciones (investigar)
+    // instanciamos url y upload para utilizarlos url lo pasamos en el return y upload en la funcion
+    // uploadImage
     const {url, upload} = useStorageFile(storageRefPath)
 
     function uploadImage (e) {

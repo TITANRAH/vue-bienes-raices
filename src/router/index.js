@@ -13,6 +13,11 @@ const router = createRouter({
       component: HomeView
     },
     {
+      path: '/propiedades/:id',
+      name: 'propiedad',
+      component: () => import('../views/PropiedadView.vue')
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue')
@@ -24,23 +29,25 @@ const router = createRouter({
       // este sera el parametro que me sirve para ejecutar el guard de rutas
       meta: {requiresAuth: true}, // con poner el requiresAuth en la ruta padre basta para proteger a los hijos
       children: [
+
+        // no es necesario poner diagonales por al ser ruta hija el sistema ya lo sabe
         {
-          path: '/admin/propiedades',
+          path: 'propiedades',
           name: 'admin-propiedades',
           component: () => import('../views/admin/AdminView.vue'),
-          meta: {requiresAuth: true}, 
+   
         },
         {
-          path: '/admin/nueva',
+          path: 'nueva',
           name: 'nueva-propiedad',
           component: () => import('../views/admin/NuevaPropiedadView.vue'),
-          meta: {requiresAuth: true}, 
+   
         },
         {
-          path: '/admin/editar/:id',
+          path: 'editar/:id',
           name: 'editar-propiedad',
           component: () => import('../views/admin/EditarPropiedadView.vue'),
-          meta: {requiresAuth: true}, 
+   
         },
      
       ]

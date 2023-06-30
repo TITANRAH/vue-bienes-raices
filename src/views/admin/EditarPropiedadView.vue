@@ -1,8 +1,8 @@
 <script setup>
 
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useFirestore, useDocument } from 'vuefire';
-import { doc, updateDoc} from 'firebase/firestore'
+import { doc, updateDoc } from 'firebase/firestore'
 import { useField, useForm } from 'vee-validate'
 import "leaflet/dist/leaflet.css";
 import {
@@ -14,8 +14,9 @@ import useImage from '@/composables/useImage'
 import useLocationMap from '@/composables/useLocationMap'
 import { validationSchema } from '@/validation/propiedadSchema'
 import { watch } from 'vue';
+import { update } from 'firebase/database';
 
-const items = [1,2,3,4,5]
+const items = [1, 2, 3, 4, 5]
 
 const { url, uploadImage, image } = useImage()
 const { zoom, center, pin } = useLocationMap()
@@ -33,8 +34,9 @@ const alberca = useField('alberca')
 
 
 const route = useRoute()
+const router = useRouter()
 // asi rescato el id de la url
-console.log('id que me traere para editar',route.params.id);
+console.log('id que me traere para editar', route.params.id);
 
 // obtener la propiedad a editar
 
@@ -54,162 +56,126 @@ console.log('propiedad a traer en editar ', propiedad)
 // el watch observara el cambio de propiedad para que en el formulario 
 // aparezcan los datos de esta propiedad
 watch(propiedad, (propiedad) => {
-      titulo.value.value = propiedad.titulo
-      precio.value.value = propiedad.precio
-      habitaciones.value.value = propiedad.habitaciones
-      wc.value.value = propiedad.wc
-      estacionamiento.value.value = propiedad.estacionamiento
-      descripcion.value.value = propiedad.descripcion
-      alberca.value.value = propiedad.alberca
-      center.value = propiedad.ubicacion
-     
-      
-  })
+    titulo.value.value = propiedad.titulo
+    precio.value.value = propiedad.precio
+    habitaciones.value.value = propiedad.habitaciones
+    wc.value.value = propiedad.wc
+    estacionamiento.value.value = propiedad.estacionamiento
+    descripcion.value.value = propiedad.descripcion
+    alberca.value.value = propiedad.alberca
+    center.value = propiedad.ubicacion
 
-const submit = handleSubmit((values) => {
-  console.log(values)
+
+})
+
+const submit = handleSubmit(async (values) => {
+
+    const { imagen, ...propiedad } = values
+
+    console.log('values desde editar', values)
+    if (url.value) {
+        console.log('hay una imagen nueva')
+
+        const data = {
+            // para que este todo en un objeto ... por que laubicacion es un objeto aparte
+            ...propiedad,
+            // si hay una imagennueva le paso la llave con el valor de la url
+            imagen: url.value,
+            ubicacion: center.value
+        }
+        // para tomar la referencia a actualizar esta es una funcion de firebase
+        await updateDoc(docRef, data)
+    } else {
+        console.log('No hay imagen')
+        console.log('propiedad en el else de que no trajo imagen', propiedad)
+        console.log('ubicacion en el else de que no trajo imagen', center.value)
+
+        const data = {
+            // para que este todo en un objeto ... por que laubicacion es un objeto aparte
+            ...propiedad,
+            ubicacion: center.value
+        }
+        // para tomar la referencia a actualizar esta es una funcion de firebase
+        await updateDoc(docRef, data)
+        console.log('data desde else editar', data)
+    }
+
+    // pese al if lo llevamos a admin propiedaeds
+    router.push({ name: 'admin-propiedades' })
 })
 
 </script>
 
 
 <template>
-  <v-card max-width="800" flat class="mx-auto my-10">
+    <v-card max-width="800" flat class="mx-auto my-10">
         <v-card-title class="mt-5">
             <h1 class="text-h4 font-weight-bold">Editar Propiedad</h1>
         </v-card-title>
-        <v-card-subtitle > 
+        <v-card-subtitle>
             <p class="text-h5">Edita los detalles de la propiedad</p>
         </v-card-subtitle>
         <!-- es parecido el formulario al de nueva propiedad la diferencia es que la foto 
         no tiene validacion por que no es obligacion cargar una nueva foto al editar -->
         <v-form class="mt-10">
-            <v-text-field
-                v-model="titulo.value.value"
-                :error-messages="titulo.errorMessage.value"
-                label="Titulo"
-                class="mb-5"
-            ></v-text-field>
+            <v-text-field v-model="titulo.value.value" :error-messages="titulo.errorMessage.value" label="Titulo"
+                class="mb-5"></v-text-field>
 
-            <v-file-input
-                v-model="imagen.value.value"
-                :error-messages="imagen.errorMessage.value"
-                accept="image/jpeg"
-                prepend-icon="mdi-camera"
-                label="Fotografía"
-                class="mb-5"
-                @change="uploadImage"
-            ></v-file-input>
+            <v-file-input v-model="imagen.value.value" :error-messages="imagen.errorMessage.value" accept="image/jpeg"
+                prepend-icon="mdi-camera" label="Fotografía" class="mb-5" @change="uploadImage"></v-file-input>
 
             <div class="my-5">
 
-               
-              <p v-if="imagen" class="font-weight-bold">Imagen Actual: </p>
-              
-            
-                <img 
-                    v-if="image"
-                    alt=""
-                    class="m-50"
-                    :src="image"
-                >
-                <img v-else alt=""
-                    class="m-50"
-                    :src="propiedad?.imagen"
-                >
 
-            
-              </div>
+                <p v-if="imagen" class="font-weight-bold">Imagen Actual: </p>
 
 
-            <v-text-field
-                v-model="precio.value.value"
-                :error-messages="precio.errorMessage.value"
-                label="Precio"
-                class="mb-5"
-            ></v-text-field>
+                <img v-if="image" alt="" class="m-50" :src="image">
+                <img v-else alt="" class="m-50" :src="propiedad?.imagen">
+
+
+            </div>
+
+
+            <v-text-field v-model="precio.value.value" :error-messages="precio.errorMessage.value" label="Precio"
+                class="mb-5"></v-text-field>
 
             <v-row>
-                <v-col
-                    cols="12"
-                    md="4"
-                >
-                    <v-select 
-                        label="Habitaciones"
-                        class="mb-5"
-                        :items="items"
-                        v-model="habitaciones.value.value"
-                        :error-messages="habitaciones.errorMessage.value"
-                    />
+                <v-col cols="12" md="4">
+                    <v-select label="Habitaciones" class="mb-5" :items="items" v-model="habitaciones.value.value"
+                        :error-messages="habitaciones.errorMessage.value" />
                 </v-col>
 
-                <v-col
-                    cols="12"
-                    md="4"
-                >
-                    <v-select 
-                        label="WC"
-                        class="mb-5"
-                        :items="items"
-                        v-model="wc.value.value"
-                        :error-messages="wc.errorMessage.value"
-                    />
+                <v-col cols="12" md="4">
+                    <v-select label="WC" class="mb-5" :items="items" v-model="wc.value.value"
+                        :error-messages="wc.errorMessage.value" />
                 </v-col>
 
-                <v-col
-                    cols="12"
-                    md="4"
-                >
-                    <v-select 
-                        label="Lugares Estacionamiento"
-                        class="mb-5"
-                        :items="items"
-                        v-model="estacionamiento.value.value"
-                        :error-messages="estacionamiento.errorMessage.value"
-                    />
+                <v-col cols="12" md="4">
+                    <v-select label="Lugares Estacionamiento" class="mb-5" :items="items"
+                        v-model="estacionamiento.value.value" :error-messages="estacionamiento.errorMessage.value" />
                 </v-col>
             </v-row>
 
-            <v-textarea
-                v-model="descripcion.value.value"
-                :error-messages="descripcion.errorMessage.value"
-                label="Descripción"
-                class="mb-5"
-            ></v-textarea>
+            <v-textarea v-model="descripcion.value.value" :error-messages="descripcion.errorMessage.value"
+                label="Descripción" class="mb-5"></v-textarea>
 
-            <v-checkbox 
-                v-model="alberca.value.value"
-                label="Alberca"
-            ></v-checkbox>
+            <v-checkbox v-model="alberca.value.value" label="Alberca"></v-checkbox>
 
 
             <h2 class="font-weight-bold text-center my-5">Ubicación</h2>
             <div class="pb-10">
                 <div style="height:600px">
-                    <LMap 
-                        v-model:zoom="zoom" 
-                        :center="center" 
-                        :use-global-leaflet="false" 
-                    >
-                        <LMarker
-                            :lat-lng="center"
-                            draggable
-                            @moveend="pin"
-                        />
-                        <LTileLayer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        ></LTileLayer>
+                    <LMap v-model:zoom="zoom" :center="center" :use-global-leaflet="false">
+                        <LMarker :lat-lng="center" draggable @moveend="pin" />
+                        <LTileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"></LTileLayer>
                     </LMap>
                 </div>
             </div>
 
-                <v-btn
-                    color="pink-accent-3"
-                    block
-                    @click="submit"
-                >
-                    Guardar Cambios
-                </v-btn>
+            <v-btn color="pink-accent-3" block @click="submit">
+                Guardar Cambios
+            </v-btn>
         </v-form>
-</v-card>
+    </v-card>
 </template>
